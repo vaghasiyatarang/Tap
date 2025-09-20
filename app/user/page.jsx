@@ -4,9 +4,27 @@ import Link from "next/link";
 import { useCallback } from "react";
 
 const UsePage = () => {
-  const handleClick = useCallback(() => {
-    const url = new URL("/api/vcard", window.location.origin); // no spaces
-    const params = new URLSearchParams({
+  // const handleClick = useCallback(() => {
+  //   const url = new URL("/api/vcard", window.location.origin); // no spaces
+  //   const params = new URLSearchParams({
+  //     first: "Vagaro Technologi",
+  //     last: "Technologi",
+  //     company: "Vagaro",
+  //     title: "React Developer",
+  //     phone: "1234567890",
+  //     email: "vagaro@yopmail.com",
+  //     city: "Ahmedabad",
+  //     region: "Gujarat",
+  //     country: "India",
+  //   });
+  //   url.search = params.toString();
+  //   window.location.href = url.toString(); // triggers the vcf open/save flow
+  // }, []);
+
+  const handleClick = useCallback(async () => {
+    // Build query
+    const url = new URL("/api/vcard", window.location.origin);
+    url.search = new URLSearchParams({
       first: "Vagaro Technologi",
       last: "Technologi",
       company: "Vagaro",
@@ -16,9 +34,28 @@ const UsePage = () => {
       city: "Ahmedabad",
       region: "Gujarat",
       country: "India",
-    });
-    url.search = params.toString();
-    window.location.href = url.toString(); // triggers the vcf open/save flow
+    }).toString();
+
+    // Try Web Share with a file (best on Android Chrome)
+    try {
+      const res = await fetch(url.toString());
+      const blob = await res.blob(); // will be text/x-vcard
+      const file = new File([blob], "contact.vcf", { type: "text/x-vcard" });
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Save contact" });
+        return;
+      }
+    } catch (e) {
+      // fall through to link open
+    }
+
+    // Fallbacks:
+    // 1) Direct open of the API URL (some Android versions will route to Contacts)
+    window.location.href = url.toString();
+
+    // 2) If you still see only a download on some devices,
+    //    keep a secondary “Download vCard” link as a last resort.
   }, []);
 
   return (
@@ -71,7 +108,7 @@ const UsePage = () => {
 
           </div>
 
-          
+
 
           {/* Gmail Card */}
           {/* <div className="bg-white shadow-lg rounded-lg p-8 flex flex-col justify-between hover:shadow-xl transition-shadow duration-300">

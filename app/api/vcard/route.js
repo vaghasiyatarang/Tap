@@ -38,8 +38,9 @@ export async function GET(req) {
   return new NextResponse(vcard, {
     status: 200,
     headers: {
-      "Content-Type": "text/vcard; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Type": "text/x-vcard; charset=utf-8",
+      "Content-Disposition": `inline; filename="${filename}"`,
+      "Cache-Control" : "no-cache, no-store, must-revalidate",
     },
   });
 }
